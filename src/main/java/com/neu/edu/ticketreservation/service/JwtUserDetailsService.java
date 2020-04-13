@@ -2,7 +2,7 @@ package com.neu.edu.ticketreservation.service;
 
 import java.util.ArrayList;
 
-import com.neu.edu.ticketreservation.bean.DAOUser;
+import com.neu.edu.ticketreservation.bean.UserBean;
 import com.neu.edu.ticketreservation.bean.UserDTO;
 import com.neu.edu.ticketreservation.dao.UserDao;
 
@@ -25,7 +25,7 @@ public class JwtUserDetailsService implements UserDetailsService {
 
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-		DAOUser user = userDao.findByUsername(username);
+		UserBean user = userDao.findByUsername(username);
 		if (user == null) {
 			throw new UsernameNotFoundException("User not found with username: " + username);
 		}
@@ -33,8 +33,8 @@ public class JwtUserDetailsService implements UserDetailsService {
 				new ArrayList<>());
 	}
 	
-	public DAOUser save(UserDTO user) {
-		DAOUser newUser = new DAOUser();
+	public UserBean save(UserDTO user) {
+		UserBean newUser = new UserBean();
 		newUser.setUsername(user.getUsername());
 		newUser.setPassword(bcryptEncoder.encode(user.getPassword()));
 		return userDao.save(newUser);

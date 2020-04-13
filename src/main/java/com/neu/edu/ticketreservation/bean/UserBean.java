@@ -6,13 +6,15 @@ import javax.persistence.*;
 
 @Entity
 @Table(name = "user")
-public class DAOUser {
+public class UserBean {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
+
 	@Column
 	private String username;
+	
 	@Column
 	@JsonIgnore
 	private String password;
@@ -31,6 +33,14 @@ public class DAOUser {
 
 	public void setPassword(String password) {
 		this.password = password;
+	}
+
+	public long getId() {
+		return id;
+	}
+
+	public void setId(long id) {
+		this.id = id;
 	}
 
 }

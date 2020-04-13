@@ -1,13 +1,13 @@
 package com.neu.edu.ticketreservation.dao;
 
-import com.neu.edu.ticketreservation.bean.DAOUser;
+import com.neu.edu.ticketreservation.bean.UserBean;
 
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface UserDao extends CrudRepository<DAOUser, Integer> {
+public interface UserDao extends CrudRepository<UserBean, Integer> {
 	
-	DAOUser findByUsername(String username);
+	UserBean findByUsername(String username);
 	
 }
