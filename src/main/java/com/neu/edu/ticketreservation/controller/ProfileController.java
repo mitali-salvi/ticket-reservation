@@ -2,10 +2,12 @@ package com.neu.edu.ticketreservation.controller;
 
 import javax.validation.Valid;
 
+import com.neu.edu.ticketreservation.bean.CreditCardDetails;
 import com.neu.edu.ticketreservation.bean.UserBean;
 import com.neu.edu.ticketreservation.bean.UserProfile;
 import com.neu.edu.ticketreservation.bean.wrapper.UserProfileWrapper;
 import com.neu.edu.ticketreservation.dao.UserDao;
+import com.neu.edu.ticketreservation.service.StripeService;
 import com.neu.edu.ticketreservation.service.UserProfileService;
 
 import org.slf4j.Logger;
@@ -31,6 +33,9 @@ public class ProfileController {
 
 	@Autowired
 	private UserProfileService userProfileService;
+
+	@Autowired
+	private StripeService stripeService;
 
 	@PostMapping(path = "/profile")
 	public ResponseEntity<Object> createUserProfile(Authentication authentication,
@@ -58,7 +63,29 @@ public class ProfileController {
 		UserProfile userProfile = userProfileService.getFromUserBean(userBean);
 		UserProfileWrapper recipeWrapper = new UserProfileWrapper();
 		return new ResponseEntity<>(recipeWrapper.copyFromUser(userProfile), HttpStatus.CREATED);
+	}
 
+	@PostMapping(path = "/addPayment")
+	public ResponseEntity<Object> addPaymentMethod(Authentication authentication,
+			@Valid @RequestBody CreditCardDetails creditCardDetails) {
+		logger.info("Post mapping");
+		User user = (User) authentication.getPrincipal();
+		UserBean userBean = userDao.findByUsername(user.getUsername());
+		UserProfile userProfile = userProfileService.getFromUserBean(userBean);
+		if(userProfile.isPaymentMethodAdded()){
+			return new ResponseEntity<>("Payment method already exists" ,HttpStatus.BAD_REQUEST);
+		}
+
+		String customerId = stripeService.addCardToCustomer(userBean, userProfile, creditCardDetails);
+		if(customerId ==null){
+			return new ResponseEntity<>("Error attaching card to customer" ,HttpStatus.BAD_REQUEST);
+		}
+
+		userProfile.setStripeCustomerId(customerId);
+		userProfile.setPaymentMethodAdded(true);
+		userProfileService.save(userProfile);
+
+		return new ResponseEntity<>("Successfully attached card to customer" ,HttpStatus.OK);
 	}
 
 }

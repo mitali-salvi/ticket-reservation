@@ -42,6 +42,12 @@ public class UserProfile implements Serializable{
     @Column
     private String lastName;
 
+    @Column
+    private boolean isPaymentMethodAdded;
+
+    @Column
+    private String stripeCustomerId;
+
     public UserBean getUser() {
         return user;
     }
@@ -65,4 +71,23 @@ public class UserProfile implements Serializable{
     public void setLastName(String lastName) {
         this.lastName = lastName;
     }
+
+    public boolean isPaymentMethodAdded() {
+        return isPaymentMethodAdded;
+    }
+
+    public void setPaymentMethodAdded(boolean isPaymentMethodAdded) {
+        this.isPaymentMethodAdded = isPaymentMethodAdded;
+    }
+
+    public String getStripeCustomerId() {
+        return stripeCustomerId;
+    }
+
+    public void setStripeCustomerId(String stripeCustomerId) {
+        this.stripeCustomerId = stripeCustomerId;
+    }
+
+    
+
 }
