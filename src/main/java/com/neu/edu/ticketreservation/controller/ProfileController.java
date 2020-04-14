@@ -9,6 +9,7 @@ import com.neu.edu.ticketreservation.bean.wrapper.UserProfileWrapper;
 import com.neu.edu.ticketreservation.dao.UserDao;
 import com.neu.edu.ticketreservation.service.StripeService;
 import com.neu.edu.ticketreservation.service.UserProfileService;
+import com.neu.edu.ticketreservation.util.SecurityUtil;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +18,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -37,13 +37,14 @@ public class ProfileController {
 	@Autowired
 	private StripeService stripeService;
 
+	@Autowired
+	private SecurityUtil securityUtil;
+
 	@PostMapping(path = "/profile")
 	public ResponseEntity<Object> createUserProfile(Authentication authentication,
 			@Valid @RequestBody UserProfile userProfile) {
 		logger.info("Post mapping");
-		User user = (User) authentication.getPrincipal();
-
-		UserBean userBean = userDao.findByUsername(user.getUsername());
+		UserBean userBean = securityUtil.getPrincipal(userDao);
 		userProfile.setUser(userBean);
 		userProfileService.save(userProfile);
 		logger.info("User Profile:" + userProfile.getFirstName()+"  "+userProfile.getLastName());
@@ -53,9 +54,7 @@ public class ProfileController {
 	@GetMapping(path = "/profile", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Object> getUserProfile(Authentication authentication ) {
 		logger.info("Get mapping");
-		User user = (User) authentication.getPrincipal();
-
-		UserBean userBean = userDao.findByUsername(user.getUsername());
+		UserBean userBean = securityUtil.getPrincipal(userDao);
 		if(userBean ==null){
 			logger.error("No user found");
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -69,8 +68,7 @@ public class ProfileController {
 	public ResponseEntity<Object> addPaymentMethod(Authentication authentication,
 			@Valid @RequestBody CreditCardDetails creditCardDetails) {
 		logger.info("Post mapping");
-		User user = (User) authentication.getPrincipal();
-		UserBean userBean = userDao.findByUsername(user.getUsername());
+		UserBean userBean = securityUtil.getPrincipal(userDao);
 		UserProfile userProfile = userProfileService.getFromUserBean(userBean);
 		if(userProfile.isPaymentMethodAdded()){
 			return new ResponseEntity<>("Payment method already exists" ,HttpStatus.BAD_REQUEST);

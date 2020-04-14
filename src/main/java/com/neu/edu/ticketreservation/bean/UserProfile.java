@@ -86,8 +86,5 @@ public class UserProfile implements Serializable{
 
     public void setStripeCustomerId(String stripeCustomerId) {
         this.stripeCustomerId = stripeCustomerId;
-    }
-
-    
-
+    } 
 }
