@@ -158,13 +158,18 @@ public class HomeController {
 
         if (movieService.checkIfSeatsEmpty(seats)) {
             logger.error("Seats are filled");
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("Seats are filled", HttpStatus.BAD_REQUEST);
         }
 
         FilmSession filmSession = movieService.getFilmSessionFromId(filmSessionId);
         Transaction transaction = movieService.bookTickets(userBean, seats, filmSessionId);
 
         UserProfile userProfile = userProfileService.getFromUserBean(userBean);
+        if (userProfile.getStripeCustomerId() ==null) {
+            logger.error("Payment method not found");
+            return new ResponseEntity<>("Payment Method not added to account", HttpStatus.BAD_REQUEST);
+        }
+
         String chargeId = stripeService.chargeCard(userBean, userProfile, transaction.getTotalPrice());
         if (chargeId == null) {
             logger.error("Couldnt charge credit card attached to customer");
