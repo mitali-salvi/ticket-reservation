@@ -1,5 +1,6 @@
 package com.neu.edu.ticketreservation.bean.movie;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -21,6 +22,12 @@ public class Seat {
     @JoinColumn(name = "row_id")
     private Row row;
 
+    @Column
+    private boolean isSeatBooked;
+
+    @Column
+    private long price;
+
     public long getSeatId() {
         return seatId;
     }
@@ -35,6 +42,22 @@ public class Seat {
 
     public void setRow(Row row) {
         this.row = row;
+    }
+
+    public boolean isSeatBooked() {
+        return isSeatBooked;
+    }
+
+    public void setSeatBooked(boolean isSeatBooked) {
+        this.isSeatBooked = isSeatBooked;
+    }
+
+    public long getPrice() {
+        return price;
+    }
+
+    public void setPrice(long price) {
+        this.price = price;
     }
 
 }

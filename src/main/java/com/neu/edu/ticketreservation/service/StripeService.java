@@ -1,6 +1,8 @@
 package com.neu.edu.ticketreservation.service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
@@ -11,6 +13,7 @@ import com.neu.edu.ticketreservation.bean.UserProfile;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
+import com.stripe.model.PaymentIntent;
 import com.stripe.model.PaymentMethod;
 
 import org.slf4j.Logger;
@@ -23,12 +26,12 @@ public class StripeService {
 
     @Value("${STRIPE_SECRET_KEY}")
     private String secretKey;
-     
+
     @PostConstruct
     public void init() {
         Stripe.apiKey = secretKey;
     }
-    
+
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     public String addCardToCustomer(UserBean userBean, UserProfile userProfile, CreditCardDetails creditCardDetails) {
@@ -71,6 +74,26 @@ public class StripeService {
         }
 
         return customer.getId();
+    }
+
+    public String chargeCard(UserBean userBean, UserProfile userProfile, double amountToBeCharged) {
+        List<Object> paymentMethodTypes = new ArrayList<>();
+        paymentMethodTypes.add("card");
+        Map<String, Object> params = new HashMap<>();
+        params.put("amount", (int)(amountToBeCharged*100));
+        params.put("currency", "usd");
+        params.put("customer", userProfile.getStripeCustomerId());
+        params.put("payment_method_types", paymentMethodTypes);
+
+        PaymentIntent paymentIntent = null;
+        try {
+            paymentIntent = PaymentIntent.create(params);
+        } catch (StripeException e) {
+            logger.error("Exception while charging amount to customer::" + e.getMessage());
+            return null;
+        }
+
+        return paymentIntent.getId();
     }
 
 }

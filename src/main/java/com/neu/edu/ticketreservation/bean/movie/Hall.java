@@ -3,6 +3,7 @@ package com.neu.edu.ticketreservation.bean.movie;
 import java.util.Set;
 
 import javax.persistence.Column;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -29,7 +30,12 @@ public class Hall {
     private Theatre theatre;
 
     @OneToMany(mappedBy = "hall")
+    @ElementCollection(targetClass=Row.class)
     private Set<Row> rows;
+
+    @ManyToOne
+    @JoinColumn(name = "film_id")
+    private Film film;
 
     public long getHallId() {
         return hallId;
@@ -62,4 +68,13 @@ public class Hall {
     public void setRows(Set<Row> rows) {
         this.rows = rows;
     }
+
+    public Film getFilm() {
+        return film;
+    }
+
+    public void setFilm(Film film) {
+        this.film = film;
+    }
+
 }

@@ -1,12 +1,22 @@
 package com.neu.edu.ticketreservation.controller;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
 import javax.validation.Valid;
 
 import com.neu.edu.ticketreservation.bean.CreditCardDetails;
 import com.neu.edu.ticketreservation.bean.UserBean;
 import com.neu.edu.ticketreservation.bean.UserProfile;
+import com.neu.edu.ticketreservation.bean.movie.FilmSession;
+import com.neu.edu.ticketreservation.bean.movie.Ticket;
+import com.neu.edu.ticketreservation.bean.movie.Transaction;
+import com.neu.edu.ticketreservation.bean.wrapper.TransactionWrapper;
 import com.neu.edu.ticketreservation.bean.wrapper.UserProfileWrapper;
 import com.neu.edu.ticketreservation.dao.UserDao;
+import com.neu.edu.ticketreservation.service.MovieService;
 import com.neu.edu.ticketreservation.service.StripeService;
 import com.neu.edu.ticketreservation.service.UserProfileService;
 import com.neu.edu.ticketreservation.util.SecurityUtil;
@@ -40,11 +50,18 @@ public class ProfileController {
 	@Autowired
 	private SecurityUtil securityUtil;
 
+	@Autowired
+    private MovieService movieService;
+
 	@PostMapping(path = "/profile")
 	public ResponseEntity<Object> createUserProfile(Authentication authentication,
 			@Valid @RequestBody UserProfile userProfile) {
 		logger.info("Post mapping");
 		UserBean userBean = securityUtil.getPrincipal(userDao);
+		if(userBean ==null){
+			logger.error("No user found");
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
 		userProfile.setUser(userBean);
 		userProfileService.save(userProfile);
 		logger.info("User Profile:" + userProfile.getFirstName()+"  "+userProfile.getLastName());
@@ -69,6 +86,10 @@ public class ProfileController {
 			@Valid @RequestBody CreditCardDetails creditCardDetails) {
 		logger.info("Post mapping");
 		UserBean userBean = securityUtil.getPrincipal(userDao);
+		if(userBean ==null){
+			logger.error("No user found");
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
 		UserProfile userProfile = userProfileService.getFromUserBean(userBean);
 		if(userProfile.isPaymentMethodAdded()){
 			return new ResponseEntity<>("Payment method already exists" ,HttpStatus.BAD_REQUEST);
@@ -84,6 +105,29 @@ public class ProfileController {
 		userProfileService.save(userProfile);
 
 		return new ResponseEntity<>("Successfully attached card to customer" ,HttpStatus.OK);
+	}
+
+	@GetMapping(path = "/history")
+	public ResponseEntity<Object> addPaymentMethod(Authentication authentication) {
+		logger.info("Get mapping history");
+		UserBean userBean = securityUtil.getPrincipal(userDao);
+		if(userBean ==null){
+			logger.error("No user found");
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+
+		List<Transaction> transactionList = movieService.getPastTransactions(userBean);
+		List<TransactionWrapper> transactionWrappers = new ArrayList<TransactionWrapper>();
+        for (Transaction t : transactionList) {
+			TransactionWrapper tw = new TransactionWrapper();
+			Set<Ticket> tickets = t.getTickets();
+			Iterator<Ticket> iter = tickets.iterator();
+			Ticket first = (Ticket)iter.next();
+			FilmSession filmSession = first.getFilmSession();
+            transactionWrappers.add(tw.copyFromTransaction(t, filmSession));
+        }
+
+		return new ResponseEntity<>(transactionWrappers ,HttpStatus.OK);
 	}
 
 }

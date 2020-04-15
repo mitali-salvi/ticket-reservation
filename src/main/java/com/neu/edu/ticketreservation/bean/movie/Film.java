@@ -1,8 +1,9 @@
 package com.neu.edu.ticketreservation.bean.movie;
 
-import java.util.List;
+import java.util.Set;
 
 import javax.persistence.Column;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -24,7 +25,8 @@ public class Film {
     private String description;
 
     @Column
-    private List<String> cast;
+    @ElementCollection(targetClass=String.class)
+    private Set<String> cast;
 
     @Column
     private String genre;
@@ -53,11 +55,11 @@ public class Film {
         this.description = description;
     }
 
-    public List<String> getCast() {
+    public Set<String> getCast() {
         return cast;
     }
 
-    public void setCast(List<String> cast) {
+    public void setCast(Set<String> cast) {
         this.cast = cast;
     }
 

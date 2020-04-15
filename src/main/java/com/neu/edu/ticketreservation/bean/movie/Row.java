@@ -10,7 +10,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "row")
+@Table(name = "theatre_row")
 public class Row {
 
     // Row [id, rowIndex, set of seats]
