@@ -16,9 +16,10 @@ spec:
     metadata:
       labels:
         app: backend
+    spec:
       containers:
-      - name: f19-backend
-        image: mitalisalvi/f19-t4-webapp-backend:latest
+      - name: ticket-reservation-backend
+        image: mitalisalvi/ticket-reservation-backend:latest
         imagePullPolicy: Always
         ports:
           - { containerPort: 8080,  protocol: TCP }
@@ -28,13 +29,11 @@ spec:
               secretKeyRef:
                 name: credentials
                 key: user
-
           - name: MYSQL_PASSWORD
             valueFrom:
               secretKeyRef:
                 name: credentials
                 key: password
-
           - name: MYSQL_HOST
             valueFrom:
               secretKeyRef:
@@ -50,30 +49,17 @@ spec:
               secretKeyRef:
                 name: credentials
                 key: AWS_SECRET_ACCESS_KEY
+          - name: STRIPE_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: credentials
+                key: STRIPE_KEY
         resources:
           requests:
             memory: "2048Mi"
-            cpu: "2"
+            cpu: "1"
           limits:
             memory: "2048Mi"
-            cpu: "2"
-        readinessProbe:
-          httpGet:
-            path: /v1/health
-            port: 8080
-          initialDelaySeconds: 5
-          periodSeconds: 10
-          timeoutSeconds: 2
-          failureThreshold: 1
-          successThreshold: 1
-        livenessProbe:
-          httpGet:
-            path: /v1/health
-            port: 8080
-          initialDelaySeconds: 15
-          periodSeconds: 20
-          timeoutSeconds: 2
-          failureThreshold: 1
-          successThreshold: 1
+            cpu: "1"
       imagePullSecrets:
         - name: mysecret
