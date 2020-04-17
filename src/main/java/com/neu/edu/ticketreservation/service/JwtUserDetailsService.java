@@ -39,4 +39,8 @@ public class JwtUserDetailsService implements UserDetailsService {
 		newUser.setPassword(bcryptEncoder.encode(user.getPassword()));
 		return userDao.save(newUser);
 	}
+
+	public UserBean findUser(String username) {
+        return userDao.findByUsername(username);
+    }
 }
