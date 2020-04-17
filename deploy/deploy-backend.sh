@@ -47,7 +47,7 @@ kubectl create secret generic credentials \
   --from-literal=user=${RDS_USER} \
   --from-literal=password=${RDS_PASSWORD} \
   --from-literal=host=${RDS_URL} \
-  --from-literal=STRIPE_KEY=${STRIPE_KEY} \
+  --from-literal=stripeKey=${STRIPE_KEY} \
   --from-literal=AWS_ACCESS_KEY_ID=${ACCESS_KEY} \
   --from-literal=AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS} \
   -n api

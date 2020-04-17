@@ -16,5 +16,5 @@ ENTRYPOINT java -jar \
     -Dspring.datasource.url=${MYSQL_HOST} \
     -Dspring.datasource.username=${MYSQL_USER} \
     -Dspring.datasource.password=${MYSQL_PASSWORD} \
-    -DSTRIPE_SECRET_KEY=${STRIPE_KEY} \
+    -DstripeKey=${stripeKey} \
     /ticket-reservation.jar

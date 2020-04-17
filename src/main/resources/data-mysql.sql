@@ -1,12 +1,12 @@
-delete from film_cast;
-delete from film_session;
-delete from seat;
-delete from theatre_row;
-delete from hall;
-delete from theatre;
-delete from film;
+-- delete from film_cast;
+-- delete from film_session;
+-- delete from seat;
+-- delete from theatre_row;
+-- delete from hall;
+-- delete from theatre;
+-- delete from film;
 
---------------------------
+-- --------------------------
 
 insert into film(film_id, name, description, genre) values(1, "The Forever Purge", "The fifth and final installment of 'The Purge' film series.", "Horror");
 insert into film(film_id, name, description, genre) values(2, "Tenet", "An action epic revolving around international espionage, time travel, and evolution. Possibly about a man trying to prevent World War 3 through time travel and rebirth.", "Thriller");

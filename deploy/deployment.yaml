@@ -8,7 +8,7 @@ metadata:
     group: csye7200
 spec:
   # modify replicas according to your case
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: backend
@@ -49,11 +49,11 @@ spec:
               secretKeyRef:
                 name: credentials
                 key: AWS_SECRET_ACCESS_KEY
-          - name: STRIPE_SECRET_KEY
+          - name: stripeKey
             valueFrom:
               secretKeyRef:
                 name: credentials
-                key: STRIPE_KEY
+                key: stripeKey
         resources:
           requests:
             memory: "2048Mi"

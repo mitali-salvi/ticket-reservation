@@ -165,7 +165,7 @@ public class HomeController {
         Transaction transaction = movieService.bookTickets(userBean, seats, filmSessionId);
 
         UserProfile userProfile = userProfileService.getFromUserBean(userBean);
-        if (userProfile.getStripeCustomerId() ==null) {
+        if (userProfile ==null || userProfile.getStripeCustomerId() ==null) {
             logger.error("Payment method not found");
             return new ResponseEntity<>("Payment Method not added to account", HttpStatus.BAD_REQUEST);
         }
