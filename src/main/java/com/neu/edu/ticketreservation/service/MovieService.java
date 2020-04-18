@@ -30,15 +30,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
+
 @Service
 public class MovieService {
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@Value("${SERVICE_CHARGE}")
-    private long serviceCharge;
+	private long serviceCharge;
 
-    @Autowired
+	@Autowired
 	private TheatreDao theatreDao;
 
 	@Autowired
@@ -51,35 +54,59 @@ public class MovieService {
 	private SeatDao seatDao;
 
 	@Autowired
-	private TicketDao tickeDao;
+	private TicketDao ticketDao;
 
 	@Autowired
 	private TransactionDao transactionDao;
-    
-    public List<Theatre> getAllTheatres() {
-		return theatreDao.findAll();
+
+	@Autowired
+	MeterRegistry registry;
+
+	Timer movieTimer;
+
+	public List<Theatre> getAllTheatres() {
+		movieTimer = registry.timer("custom.metrics.timer", "Backend", "TheatreList");
+		final List<Theatre>[] theatreEntities = new List[1];
+		movieTimer.record(() -> theatreEntities[0] = theatreDao.findAll());
+		return theatreEntities[0];
 	}
 
 	public List<Film> getMoviesFromTheatre(long theatreId) {
-		return filmDao.getMoviesFromTheatre(theatreId);
+		movieTimer = registry.timer("custom.metrics.timer", "Backend", "MovieList");
+		final List<Film>[] filmEntities = new List[1];
+		movieTimer.record(() -> filmEntities[0] = filmDao.getMoviesFromTheatre(theatreId));
+		return filmEntities[0];
 	}
 
 	public List<Film> getAllMovies() {
-		return filmDao.findAll();
+		movieTimer = registry.timer("custom.metrics.timer", "Backend", "MovieList");
+		final List<Film>[] filmEntities = new List[1];
+		movieTimer.record(() -> filmEntities[0] = filmDao.findAll());
+		return filmEntities[0];
 	}
 
 	public FilmSession getFilmSessionFromId(long filmSessionId) {
-		return filmSessionDao.getFilmByFilmSessionId(filmSessionId);
+		movieTimer = registry.timer("custom.metrics.timer", "Backend", "FilmSessionGet");
+		final FilmSession[] filmSessionsEntities = new FilmSession[1];
+		movieTimer.record(() -> filmSessionsEntities[0] = filmSessionDao.getFilmByFilmSessionId(filmSessionId));
+		return filmSessionsEntities[0];
 	}
 
-	public List<ShowDetails> getShowDetailsFromMovie(long filmId){
+	public List<ShowDetails> getShowDetailsFromMovie(long filmId) {
 
-		Film film = filmDao.getFilmByFilmId(filmId);
-		List<FilmSession> filmSessions = filmSessionDao.findByFilm(film);
+		movieTimer = registry.timer("custom.metrics.timer", "Backend", "MovieGet");
+		final Film[] filmEntities = new Film[1];
+		movieTimer.record(() -> filmEntities[0] = filmDao.getFilmByFilmId(filmId));
+		Film film = filmEntities[0];
+
+		movieTimer = registry.timer("custom.metrics.timer", "Backend", "FilmSessionList");
+		final List<FilmSession>[] filmSessionEntities = new List[1];
+		movieTimer.record(() -> filmSessionEntities[0] = filmSessionDao.findByFilm(film));
+		List<FilmSession> filmSessions = filmSessionEntities[0];
 
 		List<ShowDetails> showDetailsList = new ArrayList<ShowDetails>();
 
-		for (FilmSession fs: filmSessions){
+		for (FilmSession fs : filmSessions) {
 			ShowDetails showDetail = new ShowDetails();
 			Hall hall = fs.getHall();
 			Theatre theatre = hall.getTheatre();
@@ -94,16 +121,25 @@ public class MovieService {
 		return showDetailsList;
 	}
 
-	public List<Seat> getAvailableSeats (ShowDetailsWrapper showDetails){
-		FilmSession filmSession = filmSessionDao.getFilmByFilmSessionId(showDetails.getFilmSessionId());
-		Hall hall = filmSession.getHall();
+	public List<Seat> getAvailableSeats(ShowDetailsWrapper showDetails) {
+		movieTimer = registry.timer("custom.metrics.timer", "Backend", "FilmSessionGet");
+		final FilmSession[] filmSessionEntities = new FilmSession[1];
+		movieTimer.record(
+				() -> filmSessionEntities[0] = filmSessionDao.getFilmByFilmSessionId(showDetails.getFilmSessionId()));
+		FilmSession filmSession = filmSessionEntities[0];
 
+		Hall hall = filmSession.getHall();
 		Set<Row> rows = hall.getRows();
 
 		List<Seat> seatList = new ArrayList<Seat>();
-		for (Row row: rows){
-			List<Seat> seats = seatDao.findByRow(row);
-			for(Seat s: seats){
+		for (Row row : rows) {
+
+			movieTimer = registry.timer("custom.metrics.timer", "Backend", "SeatGet");
+			final List<Seat>[] seatEntities = new List[1];
+			movieTimer.record(() -> seatEntities[0] = seatDao.findByRow(row));
+			List<Seat> seats = seatEntities[0];
+
+			for (Seat s : seats) {
 				if (!s.isSeatBooked())
 					seatList.add(s);
 			}
@@ -112,45 +148,68 @@ public class MovieService {
 		return seatList;
 	}
 
-	public Transaction bookTickets (UserBean userBean, SeatWrapper[] seats, long filmSessionId){
+	public Transaction bookTickets(UserBean userBean, SeatWrapper[] seats, long filmSessionId) {
 		List<Seat> seatList = new ArrayList<Seat>();
-		for (SeatWrapper s: seats){
-			Seat seat =seatDao.findBySeatId(s.getSeatNumber());
+		for (SeatWrapper s : seats) {
+			movieTimer = registry.timer("custom.metrics.timer", "Backend", "SeatGet");
+			final Seat[] seatEntities = new Seat[1];
+			movieTimer.record(() -> seatEntities[0] = seatDao.findBySeatId(s.getSeatNumber()));
+			Seat seat = seatEntities[0];
+
 			seat.setSeatBooked(true);
 			seatList.add(seat);
-			seatDao.save(seat);
+
+			movieTimer = registry.timer("custom.metrics.timer", "Backend", "SeatSave");
+			final Seat[] seatEntitiesSave = new Seat[1];
+			movieTimer.record(() -> seatEntitiesSave[0] = seatDao.save(seat));
 		}
 
-		double totalPrice =0;
-		FilmSession filmSession = filmSessionDao.getFilmByFilmSessionId(filmSessionId);
+		double totalPrice = 0;
+
+		movieTimer = registry.timer("custom.metrics.timer", "Backend", "FilmSessionGet");
+		final FilmSession[] filmSessionEntities = new FilmSession[1];
+		movieTimer.record(() -> filmSessionEntities[0] = filmSessionDao.getFilmByFilmSessionId(filmSessionId));
+		FilmSession filmSession = filmSessionEntities[0];
+
 		Transaction transaction = new Transaction();
 		Set<Ticket> ticketList = new HashSet<Ticket>();
-	
-		for(Seat s: seatList){
+
+		for (Seat s : seatList) {
 			Ticket ticket = new Ticket();
 			ticket.setFilmSession(filmSession);
 			ticket.setSeat(s);
 			ticket.setTransaction(transaction);
-			tickeDao.save(ticket);
+
+			movieTimer = registry.timer("custom.metrics.timer", "Backend", "TicketSave");
+			final Ticket[] ticketEntitiesSave = new Ticket[1];
+			movieTimer.record(() -> ticketEntitiesSave[0] = ticketDao.save(ticket));
 
 			ticketList.add(ticket);
 			totalPrice += s.getPrice();
 		}
-		
-		totalPrice = totalPrice + ((serviceCharge*totalPrice)/100); 
-		logger.info("Total Price::"+ totalPrice);
+
+		totalPrice = totalPrice + ((serviceCharge * totalPrice) / 100);
+		logger.info("Total Price::" + totalPrice);
 		transaction.setTotalPrice(totalPrice);
 		transaction.setUserBean(userBean);
 		transaction.setTickets(ticketList);
-		transactionDao.save(transaction);
+
+		movieTimer = registry.timer("custom.metrics.timer", "Backend", "TransactionSave");
+		final Transaction[] transactionEntitiesSave = new Transaction[1];
+		movieTimer.record(() -> transactionEntitiesSave[0] = transactionDao.save(transaction));
 
 		return transaction;
 	}
 
-	public boolean checkIfSeatsEmpty (SeatWrapper[] seats){
-		for (SeatWrapper s: seats){
-			Seat seat =seatDao.findBySeatId(s.getSeatNumber());
-			if(seat.isSeatBooked()){
+	public boolean checkIfSeatsEmpty(SeatWrapper[] seats) {
+		for (SeatWrapper s : seats) {
+
+			movieTimer = registry.timer("custom.metrics.timer", "Backend", "SeatGet");
+			final Seat[] seatEntities = new Seat[1];
+			movieTimer.record(() -> seatEntities[0] = seatDao.findBySeatId(s.getSeatNumber()));
+			Seat seat = seatEntities[0];
+
+			if (seat.isSeatBooked()) {
 				return true;
 			}
 		}
@@ -158,9 +217,12 @@ public class MovieService {
 		return false;
 	}
 
-	public List<Transaction> getPastTransactions (UserBean userBean) {
-		
-		return transactionDao.findByUserBean(userBean);
+	public List<Transaction> getPastTransactions(UserBean userBean) {
+		movieTimer = registry.timer("custom.metrics.timer", "Backend", "TransactionList");
+		final List<Transaction>[] transactionEntities = new List[1];
+		movieTimer.record(() -> transactionEntities[0] = transactionDao.findByUserBean(userBean));
+		List<Transaction> transactions = transactionEntities[0];
+		return transactions;
 	}
 
 }

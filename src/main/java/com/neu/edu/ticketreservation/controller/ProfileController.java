@@ -33,6 +33,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.micrometer.core.instrument.MeterRegistry;
+
 @RestController
 public class ProfileController {
 
@@ -51,12 +53,16 @@ public class ProfileController {
 	private SecurityUtil securityUtil;
 
 	@Autowired
-    private MovieService movieService;
+	private MovieService movieService;
+	
+	@Autowired
+	MeterRegistry registry;
 
 	@PostMapping(path = "/profile")
 	public ResponseEntity<Object> createUserProfile(Authentication authentication,
 			@Valid @RequestBody UserProfile userProfile) {
-		logger.info("Post mapping");
+		registry.counter("custom.metrics.counter", "ApiCall", "ProfilePost").increment();
+		logger.info("Post mapping for profile");
 		UserBean userBean = securityUtil.getPrincipal(userDao);
 		if(userBean ==null){
 			logger.error("No user found");
@@ -70,27 +76,38 @@ public class ProfileController {
 
 	@GetMapping(path = "/profile", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Object> getUserProfile(Authentication authentication ) {
-		logger.info("Get mapping");
+		registry.counter("custom.metrics.counter", "ApiCall", "ProfileGet").increment();
+		logger.info("Get mapping for profile");
 		UserBean userBean = securityUtil.getPrincipal(userDao);
 		if(userBean ==null){
 			logger.error("No user found");
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 		UserProfile userProfile = userProfileService.getFromUserBean(userBean);
-		UserProfileWrapper recipeWrapper = new UserProfileWrapper();
-		return new ResponseEntity<>(recipeWrapper.copyFromUser(userProfile), HttpStatus.CREATED);
+		if (userProfile ==null || userProfile.getFirstName().equals("")){
+			logger.error("User profile not updated");
+			return new ResponseEntity<>("Porfile details not updated. Please update.", HttpStatus.BAD_REQUEST);
+		}
+		UserProfileWrapper profileWrapper = new UserProfileWrapper();
+		return new ResponseEntity<>(profileWrapper.copyFromUser(userProfile), HttpStatus.CREATED);
 	}
 
 	@PostMapping(path = "/addPayment")
 	public ResponseEntity<Object> addPaymentMethod(Authentication authentication,
 			@Valid @RequestBody CreditCardDetails creditCardDetails) {
-		logger.info("Post mapping");
+		registry.counter("custom.metrics.counter", "ApiCall", "AddPaymentPost").increment();
+		logger.info("Post mapping for adding card");
 		UserBean userBean = securityUtil.getPrincipal(userDao);
 		if(userBean ==null){
 			logger.error("No user found");
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 		UserProfile userProfile = userProfileService.getFromUserBean(userBean);
+		if (userProfile ==null || userProfile.getFirstName().equals("")){
+			logger.error("User profile not updated");
+			return new ResponseEntity<>("Porfile details not updated. Please update.", HttpStatus.BAD_REQUEST);
+		}
+
 		if(userProfile.isPaymentMethodAdded()){
 			return new ResponseEntity<>("Payment method already exists" ,HttpStatus.BAD_REQUEST);
 		}
@@ -109,6 +126,7 @@ public class ProfileController {
 
 	@GetMapping(path = "/history")
 	public ResponseEntity<Object> addPaymentMethod(Authentication authentication) {
+		registry.counter("custom.metrics.counter", "ApiCall", "UserHistoryGet").increment();
 		logger.info("Get mapping history");
 		UserBean userBean = securityUtil.getPrincipal(userDao);
 		if(userBean ==null){

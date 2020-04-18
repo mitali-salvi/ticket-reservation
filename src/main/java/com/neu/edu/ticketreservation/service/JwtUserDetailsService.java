@@ -13,6 +13,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 
 @Service
 public class JwtUserDetailsService implements UserDetailsService {
@@ -23,21 +25,33 @@ public class JwtUserDetailsService implements UserDetailsService {
 	@Autowired
 	private PasswordEncoder bcryptEncoder;
 
+	@Autowired
+	MeterRegistry registry;
+
+	Timer userTimer;
+
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-		UserBean user = userDao.findByUsername(username);
-		if (user == null) {
+		userTimer = registry.timer("custom.metrics.timer", "Backend", "UserGet");
+		final UserBean[] user = new UserBean[1];
+		userTimer.record(()-> user[0] = userDao.findByUsername(username));
+		if (user[0] == null) {
 			throw new UsernameNotFoundException("User not found with username: " + username);
 		}
-		return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(),
+		return new org.springframework.security.core.userdetails.User(user[0].getUsername(), user[0].getPassword(),
 				new ArrayList<>());
 	}
 	
 	public UserBean save(UserDTO user) {
-		UserBean newUser = new UserBean();
-		newUser.setUsername(user.getUsername());
-		newUser.setPassword(bcryptEncoder.encode(user.getPassword()));
-		return userDao.save(newUser);
+		userTimer = registry.timer("custom.metrics.timer", "Backend", "UserSave");
+		
+		final UserBean[] newUser = new UserBean[1];
+		UserBean newUserFirst = new UserBean();
+		newUserFirst.setUsername(user.getUsername());
+		newUserFirst.setPassword(bcryptEncoder.encode(user.getPassword()));
+		userTimer.record(()-> newUser[0] = userDao.save(newUserFirst));
+
+		return newUser[0];
 	}
 
 	public UserBean findUser(String username) {

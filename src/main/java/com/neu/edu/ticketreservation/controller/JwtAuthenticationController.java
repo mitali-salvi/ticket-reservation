@@ -20,6 +20,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.micrometer.core.instrument.MeterRegistry;
+
 @RestController
 @CrossOrigin
 public class JwtAuthenticationController {
@@ -33,9 +35,13 @@ public class JwtAuthenticationController {
 	@Autowired
 	private JwtUserDetailsService userDetailsService;
 
+	@Autowired
+	MeterRegistry registry;
+
 	@RequestMapping(value = "/authenticate", method = RequestMethod.POST)
 	public ResponseEntity<?> createAuthenticationToken(@RequestBody JwtRequest authenticationRequest) throws Exception {
 
+		registry.counter("custom.metrics.counter", "ApiCall", "AuthenticatePost").increment();
 		authenticate(authenticationRequest.getUsername(), authenticationRequest.getPassword());
 
 		final UserDetails userDetails = userDetailsService
@@ -48,6 +54,7 @@ public class JwtAuthenticationController {
 	
 	@RequestMapping(value = "/register", method = RequestMethod.POST)
 	public ResponseEntity<?> saveUser(@RequestBody UserDTO user) throws Exception {
+		registry.counter("custom.metrics.counter", "ApiCall", "RegisterPost").increment();
 		if(userDetailsService.findUser(user.getUsername())!=null){
             return new ResponseEntity<>("User already exists.", HttpStatus.BAD_REQUEST);
 		}
