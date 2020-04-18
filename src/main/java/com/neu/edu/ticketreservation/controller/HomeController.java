@@ -55,13 +55,8 @@ public class HomeController {
     private UserProfileService userProfileService;
 
     @GetMapping(path = "/theatres")
-    public ResponseEntity<Object> getTheatres(Authentication authentication) {
+    public ResponseEntity<Object> getTheatres() {
         logger.info("Get theatres");
-        UserBean userBean = securityUtil.getPrincipal(userDao);
-        if (userBean == null) {
-            logger.error("No user found");
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
 
         List<Theatre> theatreList = movieService.getAllTheatres();
         List<TheatreWrapper> theatreWrapperList = new ArrayList<TheatreWrapper>();
@@ -73,13 +68,8 @@ public class HomeController {
     }
 
     @GetMapping(path = "/movies")
-    public ResponseEntity<Object> getMovies(Authentication authentication) {
+    public ResponseEntity<Object> getMovies() {
         logger.info("Get movies");
-        UserBean userBean = securityUtil.getPrincipal(userDao);
-        if (userBean == null) {
-            logger.error("No user found");
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
 
         List<Film> filmList = movieService.getAllMovies();
         List<FilmWrapper> filmWrapperList = new ArrayList<FilmWrapper>();
