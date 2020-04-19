@@ -1,32 +1,17 @@
-#!groovy
-
-pipeline {
-  agent none
-  stages {
-    stage('Maven Install') {
-      agent {
-        docker {
-          image 'maven:3.5.0'
-        }
-      }
-      steps {
-        sh 'mvn clean install'
-      }
+node("docker") {
+    docker.withRegistry('https://hub.docker.com/repository/docker/mitalisalvi/ticket-reservation-backend', 'jenkins-docker') {
+    
+        git url: "git@github.com:mitali-salvi/ticket-reservation.git", credentialsId: 'backend'
+    
+        sh "git rev-parse HEAD > .git/commit-id"
+        def commit_id = readFile('.git/commit-id').trim()
+        println commit_id
+    
+        stage "build"
+        def app = docker.build "mitalisalvi/ticket-reservation-backend"
+    
+        stage "publish"
+        app.push 'master'
+        app.push "${commit_id}"
     }
-    stage('Docker Build') {
-      agent any
-      steps {
-        sh 'docker build -t mitalisalvi/ticket-reservation-backend:latest .'
-      }
-    }
-    stage('Docker Push') {
-      agent any
-      steps {
-        sh '''
-        docker login -u mitalisalvi -p Poyhqaz@2410
-        docker push mitalisalvi/ticket-reservation-backend:${GIT_COMMIT}
-        '''
-        }
-      }
-  }
 }
