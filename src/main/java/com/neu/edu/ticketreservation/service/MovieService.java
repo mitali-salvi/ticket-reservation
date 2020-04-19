@@ -121,11 +121,11 @@ public class MovieService {
 		return showDetailsList;
 	}
 
-	public List<Seat> getAvailableSeats(ShowDetailsWrapper showDetails) {
+	public List<Seat> getAvailableSeats(long filmSessionId) {
 		movieTimer = registry.timer("custom.metrics.timer", "Backend", "FilmSessionGet");
 		final FilmSession[] filmSessionEntities = new FilmSession[1];
 		movieTimer.record(
-				() -> filmSessionEntities[0] = filmSessionDao.getFilmByFilmSessionId(showDetails.getFilmSessionId()));
+				() -> filmSessionEntities[0] = filmSessionDao.getFilmByFilmSessionId(filmSessionId));
 		FilmSession filmSession = filmSessionEntities[0];
 
 		Hall hall = filmSession.getHall();

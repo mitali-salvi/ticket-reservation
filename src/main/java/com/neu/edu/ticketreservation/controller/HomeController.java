@@ -35,7 +35,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -74,14 +73,9 @@ public class HomeController {
     private ObjectMapper objectMapper;
 
     @GetMapping(path = "/theatres")
-    public ResponseEntity<Object> getTheatres(Authentication authentication) {
+    public ResponseEntity<Object> getTheatres() {
         registry.counter("custom.metrics.counter", "ApiCall", "TheatreGet").increment();
         logger.info("Get theatres");
-        UserBean userBean = securityUtil.getPrincipal(userDao);
-        if (userBean == null) {
-            logger.error("No user found");
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
 
         List<Theatre> theatreList = movieService.getAllTheatres();
         List<TheatreWrapper> theatreWrapperList = new ArrayList<TheatreWrapper>();
@@ -93,14 +87,9 @@ public class HomeController {
     }
 
     @GetMapping(path = "/movies")
-    public ResponseEntity<Object> getMovies(Authentication authentication) {
+    public ResponseEntity<Object> getMovies() {
         registry.counter("custom.metrics.counter", "ApiCall", "MoviesGet").increment();
         logger.info("Get movies");
-        UserBean userBean = securityUtil.getPrincipal(userDao);
-        if (userBean == null) {
-            logger.error("No user found");
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
 
         List<Film> filmList = movieService.getAllMovies();
         List<FilmWrapper> filmWrapperList = new ArrayList<FilmWrapper>();
@@ -111,8 +100,8 @@ public class HomeController {
         return new ResponseEntity<>(filmWrapperList, HttpStatus.OK);
     }
 
-    @GetMapping(path = "/moviesFromTheatre")
-    public ResponseEntity<Object> getMoviesFromTheatre(Authentication authentication, @RequestBody Long theatreId) {
+    @GetMapping(path = "/moviesFromTheatre/{theatreId}")
+    public ResponseEntity<Object> getMoviesFromTheatre(@PathVariable(value = "theatreId") String theatreId) {
         registry.counter("custom.metrics.counter", "ApiCall", "MoviesFromTheatreGet").increment();
         logger.info("Get movies from theatres:::" + theatreId);
         UserBean userBean = securityUtil.getPrincipal(userDao);
@@ -121,7 +110,7 @@ public class HomeController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        List<Film> filmList = movieService.getMoviesFromTheatre(theatreId);
+        List<Film> filmList = movieService.getMoviesFromTheatre(Long.parseLong(theatreId));
         List<FilmWrapper> filmWrapperList = new ArrayList<FilmWrapper>();
         for (Film f : filmList) {
             filmWrapperList.add(new FilmWrapper().copyFromFilm(f));
@@ -130,8 +119,8 @@ public class HomeController {
         return new ResponseEntity<>(filmWrapperList, HttpStatus.OK);
     }
 
-    @GetMapping(path = "/showDetailsFromMovie")
-    public ResponseEntity<Object> getShowDetalsFromTheatre(Authentication authentication, @RequestBody Long movieId) {
+    @GetMapping(path = "/showDetailsFromMovie/{movieId}")
+    public ResponseEntity<Object> getShowDetalsFromTheatre(@PathVariable(value = "movieId") String movieId) {
         registry.counter("custom.metrics.counter", "ApiCall", "ShowDetailsFromMovieGet").increment();
         logger.info("Get getShowDetalsFromTheatre:::" + movieId);
         UserBean userBean = securityUtil.getPrincipal(userDao);
@@ -140,7 +129,7 @@ public class HomeController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        List<ShowDetails> showDetailsList = movieService.getShowDetailsFromMovie(movieId);
+        List<ShowDetails> showDetailsList = movieService.getShowDetailsFromMovie(Long.parseLong(movieId));
         List<ShowDetailsWrapper> showDetailsWrapperList = new ArrayList<ShowDetailsWrapper>();
         for (ShowDetails sd : showDetailsList) {
             ShowDetailsWrapper sdw = new ShowDetailsWrapper().copyFromShowDetails(sd);
@@ -169,18 +158,16 @@ public class HomeController {
     }
 
     @GetMapping(path = "/getMovieLayout")
-    public ResponseEntity<Object> getShowLayout(Authentication authentication,
-            @RequestBody ShowDetailsWrapper showDetails) {
+    public ResponseEntity<Object> getShowLayout(@PathVariable(value = "filmSessionId") long filmSessionId) {
         registry.counter("custom.metrics.counter", "ApiCall", "MovieLayoutGet").increment();
-        logger.info("Get getShowLayout");
+        logger.info("Get getShowLayout::::::"+ filmSessionId);
         UserBean userBean = securityUtil.getPrincipal(userDao);
         if (userBean == null) {
             logger.error("No user found");
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        logger.info(showDetails.toString());
 
-        List<Seat> seatList = movieService.getAvailableSeats(showDetails);
+        List<Seat> seatList = movieService.getAvailableSeats(filmSessionId);
         List<SeatWrapper> seatWrapperList = new ArrayList<SeatWrapper>();
         for (Seat s : seatList) {
             seatWrapperList.add(new SeatWrapper().copyFromSeat(s));
@@ -190,7 +177,7 @@ public class HomeController {
     }
 
     @PostMapping(path = "/bookTickets/{filmSessionId}")
-    public ResponseEntity<Object> bookTickets(Authentication authentication, @RequestBody SeatWrapper[] seats,
+    public ResponseEntity<Object> bookTickets(@RequestBody SeatWrapper[] seats,
             @PathVariable(value = "filmSessionId") long filmSessionId) {
         registry.counter("custom.metrics.counter", "ApiCall", "BookTicketsPost").increment();
         logger.info("Get bookTickets:::" + filmSessionId);
