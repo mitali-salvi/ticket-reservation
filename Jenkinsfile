@@ -1,14 +1,15 @@
 pipeline {
   agent none
-   stages {     
+
+  stages {
     stage('Maven Install') {
       agent {         
        docker {          
          image 'maven:3.5.0'         
-     }       
-  }  
+        }
+      }  
+    }
 
-  stages {
     stage('Git Clone') {
       steps {
           checkout scm
@@ -46,14 +47,14 @@ pipeline {
       }
     }
 
-    stage('List pods') {
-    steps {
-      container('kubectl') {
-      sh '''
-      kubectl -n api set image deployment/backend mitalisalvi/ticket-reservation-backend:${GIT_COMMIT} --record
-      '''
-        }
-    }
-  }
+  //   stage('List pods') {
+  //   steps {
+  //     container('kubectl') {
+  //     sh '''
+  //     kubectl -n api set image deployment/backend mitalisalvi/ticket-reservation-backend:${GIT_COMMIT} --record
+  //     '''
+  //       }
+  //   }
+  // }
   }
 }
