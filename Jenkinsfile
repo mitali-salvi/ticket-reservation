@@ -1,33 +1,37 @@
-#!groovy
-
 pipeline {
   agent any
+
   stages {
-    stage('Maven Install') {
+    stage('Git Clone') {
+      steps {
+          checkout scm
+      }
+    }
+    
+    stage('Build package') {
       agent {
-        docker {
-          image 'twalter/maven-docker'
-        }
+        docker { image 'twalter/maven-docker' }
       }
       steps {
+        sh 'cd ${WORKSPACE}' 
         sh 'mvn clean install'
       }
     }
-
-    stage('Docker Build') {
-      agent any
+    
+    stage('Build image') {
       steps {
-        sh 'docker build -t mitalisalvi/ticket-reservation-backend:${GIT_COMMIT} .'
+        sh '''
+        env && docker build -t ${BACKEND_IMAGE_NAME}:${GIT_COMMIT} .
+        '''
       }
     }
-    stage('Docker Push') {
+    
+    stage('Push image') {
       steps {
-        container('docker') {
-          sh '''
-          docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}
-          docker push mitalisalvi/ticket-reservation-backend:${GIT_COMMIT}
-          '''
-        }
+        sh '''
+        docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}
+        docker push ${BACKEND_IMAGE_NAME}:${GIT_COMMIT}
+        '''
       }
     }
   }
