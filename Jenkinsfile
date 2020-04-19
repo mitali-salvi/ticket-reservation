@@ -21,7 +21,7 @@ pipeline {
     stage('Build image') {
       steps {
         sh '''
-        env && docker build -t ${BACKEND_IMAGE_NAME}:${GIT_COMMIT} .
+        env && docker build -t mitalisalvi/ticket-reservation-backend:${GIT_COMMIT} .
         '''
       }
     }
@@ -30,7 +30,7 @@ pipeline {
       steps {
         sh '''
         docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}
-        docker push ${BACKEND_IMAGE_NAME}:${GIT_COMMIT}
+        docker push mitalisalvi/ticket-reservation-backend:${GIT_COMMIT}
         '''
       }
     }
