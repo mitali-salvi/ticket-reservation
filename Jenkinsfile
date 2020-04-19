@@ -33,12 +33,23 @@ pipeline {
 
     }
       steps {
-          sh '''
-          env && docker build -t mitalisalvi/ticket-reservation-backend:${GIT_COMMIT} .
-          pwd
-          docker login -u mitalisalvi -p Poyhqaz@2410
-          docker push mitalisalvi/ticket-reservation-backend:${GIT_COMMIT}
-          '''
+        //   sh '''
+        //   env && docker build -t mitalisalvi/ticket-reservation-backend:${GIT_COMMIT} .
+        //   pwd
+        //   docker login -u mitalisalvi -p Poyhqaz@2410
+        //   docker push mitalisalvi/ticket-reservation-backend:${GIT_COMMIT}
+        //   '''
+            script {
+                docker.withRegistry('https://hub.docker.com/', 'docker') {
+
+                    def customImage = docker.build("mitalisalvi/ticket-reservation-backend:${GIT_COMMIT}")
+
+                    /* Push the container to the custom Registry */
+                    customImage.push()
+                }
+            }
+
+    
       }
     }
 
