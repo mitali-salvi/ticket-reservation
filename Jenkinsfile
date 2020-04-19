@@ -1,5 +1,7 @@
 pipeline {
-  agent any
+  agent  {
+    docker { image 'twalter/maven-docker' }
+  }
 
   stages {
     stage('Git Clone') {
@@ -9,12 +11,9 @@ pipeline {
     }
     
     stage('Build package') {
-      agent {
-        docker { image 'twalter/maven-docker' }
-      }
       steps {
         sh 'cd ${WORKSPACE}' 
-        sh 'mvn clean install'
+        sh 'mvn package'
       }
     }
     
