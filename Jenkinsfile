@@ -1,5 +1,7 @@
 pipeline {
-  agent any
+  agent  {
+    docker { image 'twalter/maven-docker' }
+  }
 
   stages {
     stage('Git Clone') {
@@ -18,7 +20,7 @@ pipeline {
     stage('Build image') {
       steps {
         sh '''
-        env && docker build -t mitalisalvi/ticket-reservation-backend:${GIT_COMMIT} .
+        sudo systemctl start docker && docker build -t mitalisalvi/ticket-reservation-backend:${GIT_COMMIT} .
         '''
       }
     }
