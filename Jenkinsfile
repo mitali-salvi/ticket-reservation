@@ -1,8 +1,37 @@
 pipeline {
-  agent any
-    environment {
-        DOCKER_CONFIG = "${WORKSPACE}/docker.config"
+  agent {
+    kubernetes {
+      // this label will be the prefix of the generated pod's name
+      label 'jenkins-agent-my-app'
+      yaml """
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    component: ci
+spec:
+  containers:
+    - name: docker
+      image: twalter/maven-docker
+      command:
+        - cat
+      tty: true
+      volumeMounts:
+        - mountPath: /var/run/docker.sock
+          name: docker-sock
+    - name: kubectl
+      image: lachlanevenson/k8s-kubectl:v1.14.0 # use a version that matches your K8s version
+      command:
+        - cat
+      tty: true
+  volumes:
+    - name: docker-sock
+      hostPath:
+        path: /var/run/docker.sock
+"""
     }
+  }
+
   stages {
     stage('Git Clone') {
       steps {
@@ -11,55 +40,44 @@ pipeline {
     }
     
     stage('Build package') {
-     agent {
-            docker {
-            image 'twalter/maven-docker'
-            args '-v /var/run/docker.sock:/var/run/docker.sock'
-            }
-      }
       steps {
-          sh 'cd ${WORKSPACE}'
+        container('docker') {
+          sh 'cd ${WORKSPACE}' 
           sh 'mvn clean install'
-      }
-    }
-
-    
-    stage('Build & Push image') {
-    agent {
-        docker {
-        image 'twalter/maven-docker'
-        args '-v /var/run/docker.sock:/var/run/docker.sock'
         }
-
+      }
     }
-      steps {
-        //   sh '''
-        //   env && docker build -t mitalisalvi/ticket-reservation-backend:${GIT_COMMIT} .
-        //   pwd
-        //   docker login -u mitalisalvi -p Poyhqaz@2410
-        //   docker push mitalisalvi/ticket-reservation-backend:${GIT_COMMIT}
-        //   '''
-            script {
-                docker.withRegistry('https://hub.docker.com/', 'docker') {
-
-                    def customImage = docker.build("mitalisalvi/ticket-reservation-backend:${GIT_COMMIT}")
-
-                    /* Push the container to the custom Registry */
-                    customImage.push()
-                }
-            }
-
     
+    stage('Build image') {
+      steps {
+        container('docker') {
+              
+          sh '''
+          env && docker build -t mitalisalvi/ticket-reservation-backend:${GIT_COMMIT} .
+          '''
+        }
+      }
+    }
+    
+    stage('Push image') {
+      steps {
+        container('docker') {
+          sh '''
+          docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}
+          docker push mitalisalvi/ticket-reservation-backend:${GIT_COMMIT}
+          '''
+        }
       }
     }
 
-//     stage('List pods') {
-//     agent { docker 'lachlanevenson/k8s-kubectl:v1.14.0' }
-//     steps {
-//       sh '''
-//       kubectl -n api set image deployment/backend f19-backend=${BACKEND_IMAGE_NAME}:${GIT_COMMIT} --record
-//       '''
-//     }
-//   }
+    stage('List pods') {
+    steps {
+      container('kubectl') {
+      sh '''
+      kubectl -n api set image deployment/backend csye7200-backend=mitalisalvi/ticket-reservation-backend:${GIT_COMMIT} --record
+      '''
+        }
+    }
+  }
   }
 }
