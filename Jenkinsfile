@@ -1,5 +1,7 @@
 pipeline {
-  agent any
+  agent docker {
+    image 'openjdk:8-jdk-alpine'
+  }
 
   stages {
     stage('Git Clone') {
@@ -20,20 +22,19 @@ pipeline {
     
     stage('Build image') {
       steps {
-        script {
-            def image = docker.build("mitalisalvi/ticket-reservation-backend:${GIT_COMMIT}")
-            image.push()
-          }
+        sh '''
+        docker build -t mitalisalvi/ticket-reservation-backend:${GIT_COMMIT} .
+        '''
       }
     }
     
-    // stage('Push image') {
-    //   steps {
-    //     sh '''
-    //     docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}
-    //     docker push mitalisalvi/ticket-reservation-backend:${GIT_COMMIT}
-    //     '''
-    //   }
-    // }
+    stage('Push image') {
+      steps {
+        sh '''
+        docker login -u mitalisalvi -p Poyhqaz@2410
+        docker push mitalisalvi/ticket-reservation-backend:${GIT_COMMIT}
+        '''
+      }
+    }
   }
 }
