@@ -1,9 +1,5 @@
 pipeline {
-  agent docker {
-      image 'node/8-alpine'
-      registryUrl 'https://registry.hub.docker.com'
-      registryCredentialsId 'jenkins-docker'
-  }
+  agent any
 
   stages {
     stage('Git Clone') {
