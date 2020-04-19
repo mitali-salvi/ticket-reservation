@@ -1,42 +1,26 @@
+#!groovy
+
 pipeline {
   agent none
-
   stages {
     stage('Maven Install') {
-      agent {         
-       docker {          
-         image 'maven:3.5.0'         
+      agent {
+        docker {
+          image 'maven:3.5.0'
         }
-      }  
+      }
+      steps {
+        sh 'mvn clean install'
+      }
     }
 
-    stage('Git Clone') {
+    stage('Docker Build') {
+      agent any
       steps {
-          checkout scm
+        sh 'docker build -t mitalisalvi/ticket-reservation-backend:${GIT_COMMIT} .'
       }
     }
-    
-    stage('Build package') {
-      steps {
-        container('docker') {
-          sh 'cd ${WORKSPACE}' 
-          sh 'mvn clean install'
-        }
-      }
-    }
-    
-    stage('Build image') {
-      steps {
-        container('docker') {
-              
-          sh '''
-          env && docker build -t mitalisalvi/ticket-reservation-backend:${GIT_COMMIT} .
-          '''
-        }
-      }
-    }
-    
-    stage('Push image') {
+    stage('Docker Push') {
       steps {
         container('docker') {
           sh '''
@@ -46,15 +30,5 @@ pipeline {
         }
       }
     }
-
-  //   stage('List pods') {
-  //   steps {
-  //     container('kubectl') {
-  //     sh '''
-  //     kubectl -n api set image deployment/backend mitalisalvi/ticket-reservation-backend:${GIT_COMMIT} --record
-  //     '''
-  //       }
-  //   }
-  // }
   }
 }
