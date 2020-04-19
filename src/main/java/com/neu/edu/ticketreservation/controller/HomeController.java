@@ -80,8 +80,8 @@ public class HomeController {
         return new ResponseEntity<>(filmWrapperList, HttpStatus.OK);
     }
 
-    @GetMapping(path = "/moviesFromTheatre")
-    public ResponseEntity<Object> getMoviesFromTheatre(Authentication authentication, @RequestBody Long theatreId) {
+    @GetMapping(path = "/moviesFromTheatre/{theatreId}")
+    public ResponseEntity<Object> getMoviesFromTheatre(Authentication authentication, @PathVariable(value = "theatreId") String theatreId) {
         logger.info("Get movies from theatres:::" + theatreId);
         UserBean userBean = securityUtil.getPrincipal(userDao);
         if (userBean == null) {
@@ -89,7 +89,7 @@ public class HomeController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        List<Film> filmList = movieService.getMoviesFromTheatre(theatreId);
+        List<Film> filmList = movieService.getMoviesFromTheatre(Long.parseLong(theatreId));
         List<FilmWrapper> filmWrapperList = new ArrayList<FilmWrapper>();
         for (Film f : filmList) {
             filmWrapperList.add(new FilmWrapper().copyFromFilm(f));
@@ -98,8 +98,8 @@ public class HomeController {
         return new ResponseEntity<>(filmWrapperList, HttpStatus.OK);
     }
 
-    @GetMapping(path = "/showDetailsFromMovie")
-    public ResponseEntity<Object> getShowDetalsFromTheatre(Authentication authentication, @RequestBody Long movieId) {
+    @GetMapping(path = "/showDetailsFromMovie/{movieId}")
+    public ResponseEntity<Object> getShowDetalsFromTheatre(Authentication authentication, @PathVariable(value = "movieId") String movieId) {
         logger.info("Get getShowDetalsFromTheatre:::" + movieId);
         UserBean userBean = securityUtil.getPrincipal(userDao);
         if (userBean == null) {
@@ -107,7 +107,7 @@ public class HomeController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        List<ShowDetails> showDetailsList = movieService.getShowDetailsFromMovie(movieId);
+        List<ShowDetails> showDetailsList = movieService.getShowDetailsFromMovie(Long.parseLong(movieId));
         List<ShowDetailsWrapper> showDetailsWrapperList = new ArrayList<ShowDetailsWrapper>();
         for (ShowDetails sd : showDetailsList) {
             showDetailsWrapperList.add(new ShowDetailsWrapper().copyFromShowDetails(sd));
@@ -116,18 +116,17 @@ public class HomeController {
         return new ResponseEntity<>(showDetailsWrapperList, HttpStatus.OK);
     }
 
-    @GetMapping(path = "/getMovieLayout")
+    @GetMapping(path = "/getMovieLayout/{filmSessionId}")
     public ResponseEntity<Object> getShowLayout(Authentication authentication,
-            @RequestBody ShowDetailsWrapper showDetails) {
-        logger.info("Get getShowLayout");
+        @PathVariable(value = "filmSessionId") long filmSessionId) {
+        logger.info("Get getShowLayout::" + filmSessionId);
         UserBean userBean = securityUtil.getPrincipal(userDao);
         if (userBean == null) {
             logger.error("No user found");
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        logger.info(showDetails.toString());
 
-        List<Seat> seatList = movieService.getAvailableSeats(showDetails);
+        List<Seat> seatList = movieService.getAvailableSeats(filmSessionId);
         List<SeatWrapper> seatWrapperList = new ArrayList<SeatWrapper>();
         for (Seat s : seatList) {
             seatWrapperList.add(new SeatWrapper().copyFromSeat(s));

@@ -94,8 +94,8 @@ public class MovieService {
 		return showDetailsList;
 	}
 
-	public List<Seat> getAvailableSeats (ShowDetailsWrapper showDetails){
-		FilmSession filmSession = filmSessionDao.getFilmByFilmSessionId(showDetails.getFilmSessionId());
+	public List<Seat> getAvailableSeats (long filmSessionId){
+		FilmSession filmSession = filmSessionDao.getFilmByFilmSessionId(filmSessionId);
 		Hall hall = filmSession.getHall();
 
 		Set<Row> rows = hall.getRows();
