@@ -1,5 +1,12 @@
 pipeline {
-  agent any
+  agent none
+   stages {     
+    stage('Maven Install') {
+      agent {         
+       docker {          
+         image 'maven:3.5.0'         
+     }       
+  }  
 
   stages {
     stage('Git Clone') {
