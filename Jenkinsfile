@@ -1,7 +1,5 @@
 pipeline {
-  agent  {
-    docker { image 'twalter/maven-docker' }
-  }
+  agent any
 
   stages {
     stage('Git Clone') {
