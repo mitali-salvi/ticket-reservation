@@ -58,7 +58,7 @@ public class ProfileController {
 	@Autowired
 	MeterRegistry registry;
 
-	@PostMapping(path = "/profile")
+	@PostMapping(path = "/v1/profile")
 	public ResponseEntity<Object> createUserProfile(Authentication authentication,
 			@Valid @RequestBody UserProfile userProfile) {
 		registry.counter("custom.metrics.counter", "ApiCall", "ProfilePost").increment();
@@ -74,7 +74,7 @@ public class ProfileController {
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
 
-	@GetMapping(path = "/profile", produces = MediaType.APPLICATION_JSON_VALUE)
+	@GetMapping(path = "/v1/profile", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Object> getUserProfile(Authentication authentication ) {
 		registry.counter("custom.metrics.counter", "ApiCall", "ProfileGet").increment();
 		logger.info("Get mapping for profile");
@@ -92,7 +92,7 @@ public class ProfileController {
 		return new ResponseEntity<>(profileWrapper.copyFromUser(userProfile), HttpStatus.CREATED);
 	}
 
-	@PostMapping(path = "/addPayment")
+	@PostMapping(path = "/v1/addPayment")
 	public ResponseEntity<Object> addPaymentMethod(Authentication authentication,
 			@Valid @RequestBody CreditCardDetails creditCardDetails) {
 		registry.counter("custom.metrics.counter", "ApiCall", "AddPaymentPost").increment();
@@ -124,7 +124,7 @@ public class ProfileController {
 		return new ResponseEntity<>("Successfully attached card to customer" ,HttpStatus.OK);
 	}
 
-	@GetMapping(path = "/history")
+	@GetMapping(path = "/v1/history")
 	public ResponseEntity<Object> addPaymentMethod(Authentication authentication) {
 		registry.counter("custom.metrics.counter", "ApiCall", "UserHistoryGet").increment();
 		logger.info("Get mapping history");

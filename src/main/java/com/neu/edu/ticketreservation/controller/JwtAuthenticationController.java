@@ -36,7 +36,7 @@ public class JwtAuthenticationController {
 	@Autowired
 	MeterRegistry registry;
 
-	@RequestMapping(value = "/authenticate", method = RequestMethod.POST)
+	@RequestMapping(value = "/v1/authenticate", method = RequestMethod.POST)
 	public ResponseEntity<?> createAuthenticationToken(@RequestBody JwtRequest authenticationRequest) throws Exception {
 
 		registry.counter("custom.metrics.counter", "ApiCall", "AuthenticatePost").increment();
@@ -50,7 +50,7 @@ public class JwtAuthenticationController {
 		return ResponseEntity.ok(new JwtResponse(token));
 	}
 	
-	@RequestMapping(value = "/register", method = RequestMethod.POST)
+	@RequestMapping(value = "/v1/register", method = RequestMethod.POST)
 	public ResponseEntity<?> saveUser(@RequestBody UserDTO user) throws Exception {
 		registry.counter("custom.metrics.counter", "ApiCall", "RegisterPost").increment();
 		if(userDetailsService.findUser(user.getUsername())!=null){

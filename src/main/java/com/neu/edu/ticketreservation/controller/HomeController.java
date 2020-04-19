@@ -72,7 +72,7 @@ public class HomeController {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @GetMapping(path = "/theatres")
+    @GetMapping(path = "/v1/theatres")
     public ResponseEntity<Object> getTheatres() {
         registry.counter("custom.metrics.counter", "ApiCall", "TheatreGet").increment();
         logger.info("Get theatres");
@@ -86,7 +86,7 @@ public class HomeController {
         return new ResponseEntity<>(theatreWrapperList, HttpStatus.OK);
     }
 
-    @GetMapping(path = "/movies")
+    @GetMapping(path = "/v1/movies")
     public ResponseEntity<Object> getMovies() {
         registry.counter("custom.metrics.counter", "ApiCall", "MoviesGet").increment();
         logger.info("Get movies");
@@ -100,7 +100,7 @@ public class HomeController {
         return new ResponseEntity<>(filmWrapperList, HttpStatus.OK);
     }
 
-    @GetMapping(path = "/moviesFromTheatre/{theatreId}")
+    @GetMapping(path = "/v1/moviesFromTheatre/{theatreId}")
     public ResponseEntity<Object> getMoviesFromTheatre(@PathVariable(value = "theatreId") String theatreId) {
         registry.counter("custom.metrics.counter", "ApiCall", "MoviesFromTheatreGet").increment();
         logger.info("Get movies from theatres:::" + theatreId);
@@ -119,7 +119,7 @@ public class HomeController {
         return new ResponseEntity<>(filmWrapperList, HttpStatus.OK);
     }
 
-    @GetMapping(path = "/showDetailsFromMovie/{movieId}")
+    @GetMapping(path = "/v1/showDetailsFromMovie/{movieId}")
     public ResponseEntity<Object> getShowDetalsFromTheatre(@PathVariable(value = "movieId") String movieId) {
         registry.counter("custom.metrics.counter", "ApiCall", "ShowDetailsFromMovieGet").increment();
         logger.info("Get getShowDetalsFromTheatre:::" + movieId);
@@ -157,7 +157,7 @@ public class HomeController {
         return new ResponseEntity<>(showDetailsWrapperList, HttpStatus.OK);
     }
 
-    @GetMapping(path = "/getMovieLayout")
+    @GetMapping(path = "/v1/getMovieLayout")
     public ResponseEntity<Object> getShowLayout(@PathVariable(value = "filmSessionId") long filmSessionId) {
         registry.counter("custom.metrics.counter", "ApiCall", "MovieLayoutGet").increment();
         logger.info("Get getShowLayout::::::"+ filmSessionId);
@@ -176,7 +176,7 @@ public class HomeController {
         return new ResponseEntity<>(seatWrapperList, HttpStatus.OK);
     }
 
-    @PostMapping(path = "/bookTickets/{filmSessionId}")
+    @PostMapping(path = "/v1/bookTickets/{filmSessionId}")
     public ResponseEntity<Object> bookTickets(@RequestBody SeatWrapper[] seats,
             @PathVariable(value = "filmSessionId") long filmSessionId) {
         registry.counter("custom.metrics.counter", "ApiCall", "BookTicketsPost").increment();
