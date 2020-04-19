@@ -1,40 +1,32 @@
-pipeline {
-  agent {
-    docker "ubuntu:16.04"
-  }
+#!groovy
 
+pipeline {
+  agent none
   stages {
-    stage('Git Clone') {
-      steps {
-          checkout scm
-      }
-    }
-    
-    stage('Build package') {
-      agent  {
-        docker { image 'twalter/maven-docker' }
+    stage('Maven Install') {
+      agent {
+        docker {
+          image 'maven:3.5.0'
+        }
       }
       steps {
-        sh 'cd ${WORKSPACE}' 
-        sh 'mvn package'
+        sh 'mvn clean install'
       }
     }
-    
-    stage('Build image') {
+    stage('Docker Build') {
+      agent any
       steps {
-        sh '''
-        docker build -t mitalisalvi/ticket-reservation-backend:${GIT_COMMIT} .
-        '''
+        sh 'docker build -t mitalisalvi/ticket-reservation-backend:latest .'
       }
     }
-    
-    stage('Push image') {
+    stage('Docker Push') {
+      agent any
       steps {
         sh '''
         docker login -u mitalisalvi -p Poyhqaz@2410
         docker push mitalisalvi/ticket-reservation-backend:${GIT_COMMIT}
         '''
+        }
       }
-    }
   }
 }
