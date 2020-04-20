@@ -6,6 +6,8 @@ import com.neu.edu.ticketreservation.bean.UserDTO;
 import com.neu.edu.ticketreservation.config.security.JwtTokenUtil;
 import com.neu.edu.ticketreservation.service.JwtUserDetailsService;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +25,8 @@ import io.micrometer.core.instrument.MeterRegistry;
 
 @RestController
 public class JwtAuthenticationController {
+
+	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@Autowired
 	private AuthenticationManager authenticationManager;
@@ -54,8 +58,12 @@ public class JwtAuthenticationController {
 	public ResponseEntity<?> saveUser(@RequestBody UserDTO user) throws Exception {
 		registry.counter("custom.metrics.counter", "ApiCall", "RegisterPost").increment();
 		if(userDetailsService.findUser(user.getUsername())!=null){
+			logger.info("User already exists");
             return new ResponseEntity<>("User already exists.", HttpStatus.BAD_REQUEST);
 		}
+
+		logger.info("User saved successfully");
+
 		return ResponseEntity.ok(userDetailsService.save(user).getUsername());
 	}
 

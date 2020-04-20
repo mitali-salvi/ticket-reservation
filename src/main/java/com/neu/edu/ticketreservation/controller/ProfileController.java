@@ -70,7 +70,7 @@ public class ProfileController {
 		}
 		userProfile.setUser(userBean);
 		userProfileService.save(userProfile);
-		logger.info("User Profile:" + userProfile.getFirstName()+"  "+userProfile.getLastName());
+		logger.info("User Profile Saved:" + userProfile.getFirstName()+"  "+userProfile.getLastName());
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
 
@@ -88,6 +88,7 @@ public class ProfileController {
 			logger.error("User profile not updated");
 			return new ResponseEntity<>("Porfile details not updated. Please update.", HttpStatus.BAD_REQUEST);
 		}
+		logger.info("Got User profile from db: "+userProfile.getFirstName());
 		UserProfileWrapper profileWrapper = new UserProfileWrapper();
 		return new ResponseEntity<>(profileWrapper.copyFromUser(userProfile), HttpStatus.CREATED);
 	}
@@ -109,17 +110,21 @@ public class ProfileController {
 		}
 
 		if(userProfile.isPaymentMethodAdded()){
+			logger.error("Payment already added");
 			return new ResponseEntity<>("Payment method already exists" ,HttpStatus.BAD_REQUEST);
 		}
 
 		String customerId = stripeService.addCardToCustomer(userBean, userProfile, creditCardDetails);
+		logger.info("Stripe customer id::" + customerId);
 		if(customerId ==null){
+			logger.error("Couldnt attach card to customer");
 			return new ResponseEntity<>("Error attaching card to customer" ,HttpStatus.BAD_REQUEST);
 		}
 
 		userProfile.setStripeCustomerId(customerId);
 		userProfile.setPaymentMethodAdded(true);
 		userProfileService.save(userProfile);
+		logger.info("Updating profile with stripe customer id");
 
 		return new ResponseEntity<>("Successfully attached card to customer" ,HttpStatus.OK);
 	}
@@ -134,6 +139,7 @@ public class ProfileController {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 
+		logger.info("Gettling list of transactions");
 		List<Transaction> transactionList = movieService.getPastTransactions(userBean);
 		List<TransactionWrapper> transactionWrappers = new ArrayList<TransactionWrapper>();
         for (Transaction t : transactionList) {
@@ -143,7 +149,8 @@ public class ProfileController {
 			Ticket first = (Ticket)iter.next();
 			FilmSession filmSession = first.getFilmSession();
             transactionWrappers.add(tw.copyFromTransaction(t, filmSession));
-        }
+		}
+		logger.info("List of transactions obtained::::"+transactionWrappers.size());
 
 		return new ResponseEntity<>(transactionWrappers ,HttpStatus.OK);
 	}

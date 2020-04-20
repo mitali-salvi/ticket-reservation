@@ -82,6 +82,7 @@ public class HomeController {
         for (Theatre t : theatreList) {
             theatreWrapperList.add(new TheatreWrapper().copyFromTheatre(t));
         }
+        logger.info("Theatre length::"+theatreWrapperList.size());
 
         return new ResponseEntity<>(theatreWrapperList, HttpStatus.OK);
     }
@@ -96,6 +97,7 @@ public class HomeController {
         for (Film f : filmList) {
             filmWrapperList.add(new FilmWrapper().copyFromFilm(f));
         }
+        logger.info("Movie length:::;"+filmWrapperList.size());
 
         return new ResponseEntity<>(filmWrapperList, HttpStatus.OK);
     }
@@ -115,6 +117,7 @@ public class HomeController {
         for (Film f : filmList) {
             filmWrapperList.add(new FilmWrapper().copyFromFilm(f));
         }
+        logger.info("Getting movies from Theatres:::"+ filmWrapperList.size());
 
         return new ResponseEntity<>(filmWrapperList, HttpStatus.OK);
     }
@@ -131,6 +134,7 @@ public class HomeController {
 
         List<ShowDetails> showDetailsList = movieService.getShowDetailsFromMovie(Long.parseLong(movieId));
         List<ShowDetailsWrapper> showDetailsWrapperList = new ArrayList<ShowDetailsWrapper>();
+        logger.info("Indexing show details in ES");
         for (ShowDetails sd : showDetailsList) {
             ShowDetailsWrapper sdw = new ShowDetailsWrapper().copyFromShowDetails(sd);
 
@@ -153,6 +157,7 @@ public class HomeController {
 
             showDetailsWrapperList.add(sdw);
         }
+        logger.info("Got show detaisl size::"+showDetailsWrapperList.size());
 
         return new ResponseEntity<>(showDetailsWrapperList, HttpStatus.OK);
     }
@@ -172,6 +177,7 @@ public class HomeController {
         for (Seat s : seatList) {
             seatWrapperList.add(new SeatWrapper().copyFromSeat(s));
         }
+        logger.info("Number of empty seats:::"+seatWrapperList.size());
 
         return new ResponseEntity<>(seatWrapperList, HttpStatus.OK);
     }
@@ -194,6 +200,7 @@ public class HomeController {
 
         FilmSession filmSession = movieService.getFilmSessionFromId(filmSessionId);
         Transaction transaction = movieService.bookTickets(userBean, seats, filmSessionId);
+        logger.info("Booked seats::::;"+ transaction.getTransactionId());
 
         UserProfile userProfile = userProfileService.getFromUserBean(userBean);
         if (userProfile == null || userProfile.getStripeCustomerId() == null) {
@@ -206,6 +213,7 @@ public class HomeController {
             logger.error("Couldnt charge credit card attached to customer");
             return new ResponseEntity<>("Error charging card stored in customers profile", HttpStatus.BAD_REQUEST);
         }
+        logger.info("Returning transaction back:");
 
         TransactionWrapper transactionWrapper = new TransactionWrapper();
         return new ResponseEntity<>(transactionWrapper.copyFromTransaction(transaction, filmSession), HttpStatus.OK);
