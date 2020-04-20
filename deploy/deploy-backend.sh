@@ -93,5 +93,7 @@ helm install --name nginx-ingress stable/nginx-ingress --set rbac.create=true --
 kubectl apply -f ./ingress/backend-ingress.yaml -n api
 
 # kubectl get ingress backend-ingress -n api
+sleep 20
+AWS_PROFILE=${ENV} aws lambda invoke --function-name sql-loader
 
 echo "Done"
