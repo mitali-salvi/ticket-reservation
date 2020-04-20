@@ -163,7 +163,7 @@ public class HomeController {
     }
 
     @GetMapping(path = "/v1/getMovieLayout")
-    public ResponseEntity<Object> getShowLayout(@PathVariable(value = "filmSessionId") long filmSessionId) {
+    public ResponseEntity<Object> getShowLayout(@PathVariable(value = "filmSessionId") String filmSessionId) {
         registry.counter("custom.metrics.counter", "ApiCall", "MovieLayoutGet").increment();
         logger.info("Get getShowLayout::::::"+ filmSessionId);
         UserBean userBean = securityUtil.getPrincipal(userDao);
@@ -172,7 +172,7 @@ public class HomeController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        List<Seat> seatList = movieService.getAvailableSeats(filmSessionId);
+        List<Seat> seatList = movieService.getAvailableSeats(Long.parseLong(filmSessionId));
         List<SeatWrapper> seatWrapperList = new ArrayList<SeatWrapper>();
         for (Seat s : seatList) {
             seatWrapperList.add(new SeatWrapper().copyFromSeat(s));
@@ -184,9 +184,9 @@ public class HomeController {
 
     @PostMapping(path = "/v1/bookTickets/{filmSessionId}")
     public ResponseEntity<Object> bookTickets(@RequestBody SeatWrapper[] seats,
-            @PathVariable(value = "filmSessionId") long filmSessionId) {
+            @PathVariable(value = "filmSessionId") String filmSessionId) {
         registry.counter("custom.metrics.counter", "ApiCall", "BookTicketsPost").increment();
-        logger.info("Get bookTickets:::" + filmSessionId);
+        logger.info("Get bookTickets:::dfilmSessionId::" + filmSessionId);
         UserBean userBean = securityUtil.getPrincipal(userDao);
         if (userBean == null) {
             logger.error("No user found");
@@ -198,8 +198,8 @@ public class HomeController {
             return new ResponseEntity<>("Seats are filled", HttpStatus.BAD_REQUEST);
         }
 
-        FilmSession filmSession = movieService.getFilmSessionFromId(filmSessionId);
-        Transaction transaction = movieService.bookTickets(userBean, seats, filmSessionId);
+        FilmSession filmSession = movieService.getFilmSessionFromId(Long.parseLong(filmSessionId));
+        Transaction transaction = movieService.bookTickets(userBean, seats, Long.parseLong(filmSessionId));
         logger.info("Booked seats::::;"+ transaction.getTransactionId());
 
         UserProfile userProfile = userProfileService.getFromUserBean(userBean);
