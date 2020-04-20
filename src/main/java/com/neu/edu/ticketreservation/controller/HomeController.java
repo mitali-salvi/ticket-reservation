@@ -162,7 +162,7 @@ public class HomeController {
         return new ResponseEntity<>(showDetailsWrapperList, HttpStatus.OK);
     }
 
-    @GetMapping(path = "/v1/getMovieLayout")
+    @GetMapping(path = "/v1/getMovieLayout/{filmSessionId}")
     public ResponseEntity<Object> getShowLayout(@PathVariable(value = "filmSessionId") String filmSessionId) {
         registry.counter("custom.metrics.counter", "ApiCall", "MovieLayoutGet").increment();
         logger.info("Get getShowLayout::::::"+ filmSessionId);

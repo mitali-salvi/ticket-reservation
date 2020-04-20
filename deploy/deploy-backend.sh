@@ -87,7 +87,7 @@ echo "Exposing Backend Service with load balancer"
 
 kubectl expose deployment backend -n api  --type=LoadBalancer --port 8080 --target-port 8080
 
-# kubectl create clusterrolebinding jenkins-default --clusterrole=cluster-admin --serviceaccount=jenkins:default
+kubectl create clusterrolebinding jenkins-default --clusterrole=cluster-admin --serviceaccount=jenkins:default
 
 sleep 20
 APP_URL=$(kubectl get svc backend -o json -n api | jq -r '.status.loadBalancer.ingress[0].hostname')
