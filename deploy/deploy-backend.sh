@@ -10,8 +10,8 @@ read ACCESS_KEY
 echo "Enter AWS Secret Access Key"
 read SECRET_ACCESS
 
-echo "Enter Image name (dockerRepo/Image:tag)"
-read IMAGE_NAME
+# echo "Enter Image name (dockerRepo/Image:tag)"
+# read IMAGE_NAME
 
 echo "Enter Stripe Key"
 read STRIPE_KEY
@@ -70,29 +70,28 @@ kubectl create secret docker-registry mysecret --docker-server=https://index.doc
  --docker-email=${DOCKER_EMAIL} \
  -n api
 
-# kubectl create secret docker-registry mysecret --docker-server=https://index.docker.io/v1/ \
-#  --docker-username=${DOCKER_USER} \
-#  --docker-password=${DOCKER_PASSWORD} \
-#  --docker-email=${DOCKER_EMAIL} \
-#  -n ui
+kubectl create secret docker-registry mysecret --docker-server=https://index.docker.io/v1/ \
+ --docker-username=${DOCKER_USER} \
+ --docker-password=${DOCKER_PASSWORD} \
+ --docker-email=${DOCKER_EMAIL} \
+ -n ui
 
 echo "Creating Backend Deployment"
-
 kubectl apply -f backend-service-account.yaml -n api
 
-sed -i "s|placeholder|$IMAGE_NAME|" deployment.yaml
+# sed -i "s|placeholder|$IMAGE_NAME|" deployment.yaml
 kubectl apply -f deployment.yaml -n api
 
-echo "Exposing Backend Service with load balancer"
-
-kubectl expose deployment backend -n api  --type=LoadBalancer --port 8080 --target-port 8080
+echo "Exposing Backend Service with Node Port"
+kubectl expose deployment backend -n api  --type=NodePort --port 8080 --target-port 8080
 
 kubectl create clusterrolebinding jenkins-default --clusterrole=cluster-admin --serviceaccount=jenkins:default
 
-sleep 20
-APP_URL=$(kubectl get svc backend -o json -n api | jq -r '.status.loadBalancer.ingress[0].hostname')
+echo "Creating Ingress for backend"
+helm install --name nginx-ingress stable/nginx-ingress --set rbac.create=true --namespace api
 
-echo "BACKEND URL: ${APP_URL}"
-echo ""
-echo ""
-echo "Elasticsearch LoadBalancer: ${ES_URL}"
+kubectl apply -f ./ingress/backend-ingress.yaml -n api
+
+# kubectl get ingress backend-ingress -n api
+
+echo "Done"
