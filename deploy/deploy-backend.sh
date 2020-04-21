@@ -94,6 +94,6 @@ kubectl apply -f ./ingress/backend-ingress.yaml -n api
 
 # kubectl get ingress backend-ingress -n api
 sleep 20
-AWS_PROFILE=${ENV} aws lambda invoke --function-name sql-loader
+AWS_PROFILE=${ENV} aws lambda invoke --function-name sql-loader /dev/stdout
 
 echo "Done"
