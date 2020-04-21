@@ -19,7 +19,6 @@ import com.neu.edu.ticketreservation.bean.wrapper.SeatWrapper;
 import com.neu.edu.ticketreservation.bean.wrapper.ShowDetailsWrapper;
 import com.neu.edu.ticketreservation.bean.wrapper.TheatreWrapper;
 import com.neu.edu.ticketreservation.bean.wrapper.TransactionWrapper;
-import com.neu.edu.ticketreservation.config.ElasticsearchConfig;
 import com.neu.edu.ticketreservation.dao.UserDao;
 import com.neu.edu.ticketreservation.service.MovieService;
 import com.neu.edu.ticketreservation.service.StripeService;
@@ -66,11 +65,11 @@ public class HomeController {
     @Autowired
     MeterRegistry registry;
 
-    @Autowired
-    private ElasticsearchConfig elasticsearchConfig;
+    // @Autowired
+    // private ElasticsearchConfig elasticsearchConfig;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    // @Autowired
+    // private ObjectMapper objectMapper;
 
     @GetMapping(path = "/v1/theatres")
     public ResponseEntity<Object> getTheatres() {
@@ -138,22 +137,22 @@ public class HomeController {
         for (ShowDetails sd : showDetailsList) {
             ShowDetailsWrapper sdw = new ShowDetailsWrapper().copyFromShowDetails(sd);
 
-            byte[] showDetailsMapper = new byte[0];
-            try {
-                showDetailsMapper = objectMapper.writeValueAsBytes(sdw);
-                IndexRequest indexRequest = new IndexRequest("showdetails", "_doc",
-                        Long.toString(sdw.getFilmSessionId())).source(showDetailsMapper, XContentType.JSON);
+            // byte[] showDetailsMapper = new byte[0];
+            // try {
+            //     showDetailsMapper = objectMapper.writeValueAsBytes(sdw);
+            //     IndexRequest indexRequest = new IndexRequest("showdetails", "_doc",
+            //             Long.toString(sdw.getFilmSessionId())).source(showDetailsMapper, XContentType.JSON);
 
-                IndexResponse indexResponse = elasticsearchConfig.client().index(indexRequest, RequestOptions.DEFAULT);
-                logger.info("Created elasticsearch index: " + indexResponse.getId().toString());
-                if (indexResponse.getId().equals("") || indexResponse.getId() == null) {
-                    return new ResponseEntity<>("Error creating elasticsearch index", HttpStatus.INTERNAL_SERVER_ERROR);
-                }
-            } catch (JsonProcessingException e) {
-                logger.error(e.getMessage());
-            } catch (IOException e) {
-                logger.error(e.getMessage());
-            }
+            //     IndexResponse indexResponse = elasticsearchConfig.client().index(indexRequest, RequestOptions.DEFAULT);
+            //     logger.info("Created elasticsearch index: " + indexResponse.getId().toString());
+            //     if (indexResponse.getId().equals("") || indexResponse.getId() == null) {
+            //         return new ResponseEntity<>("Error creating elasticsearch index", HttpStatus.INTERNAL_SERVER_ERROR);
+            //     }
+            // } catch (JsonProcessingException e) {
+            //     logger.error(e.getMessage());
+            // } catch (IOException e) {
+            //     logger.error(e.getMessage());
+            // }
 
             showDetailsWrapperList.add(sdw);
         }
