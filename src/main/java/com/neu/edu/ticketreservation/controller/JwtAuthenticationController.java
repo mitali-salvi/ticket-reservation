@@ -40,40 +40,40 @@ public class JwtAuthenticationController {
 	@Autowired
 	MeterRegistry registry;
 
-	@RequestMapping(value = "/v1/authenticate", method = RequestMethod.POST)
-	public ResponseEntity<?> createAuthenticationToken(@RequestBody JwtRequest authenticationRequest) throws Exception {
+	// @RequestMapping(value = "/v1/authenticate", method = RequestMethod.POST)
+	// public ResponseEntity<?> createAuthenticationToken(@RequestBody JwtRequest authenticationRequest) throws Exception {
 
-		registry.counter("custom.metrics.counter", "ApiCall", "AuthenticatePost").increment();
-		authenticate(authenticationRequest.getUsername(), authenticationRequest.getPassword());
+	// 	registry.counter("custom.metrics.counter", "ApiCall", "AuthenticatePost").increment();
+	// 	authenticate(authenticationRequest.getUsername(), authenticationRequest.getPassword());
 
-		final UserDetails userDetails = userDetailsService
-				.loadUserByUsername(authenticationRequest.getUsername());
+	// 	final UserDetails userDetails = userDetailsService
+	// 			.loadUserByUsername(authenticationRequest.getUsername());
 
-		final String token = jwtTokenUtil.generateToken(userDetails);
+	// 	final String token = jwtTokenUtil.generateToken(userDetails);
 
-		return ResponseEntity.ok(new JwtResponse(token));
-	}
+	// 	return ResponseEntity.ok(new JwtResponse(token));
+	// }
 	
-	@RequestMapping(value = "/v1/register", method = RequestMethod.POST)
-	public ResponseEntity<?> saveUser(@RequestBody UserDTO user) throws Exception {
-		registry.counter("custom.metrics.counter", "ApiCall", "RegisterPost").increment();
-		if(userDetailsService.findUser(user.getUsername())!=null){
-			logger.info("User already exists");
-            return new ResponseEntity<>("User already exists.", HttpStatus.BAD_REQUEST);
-		}
+	// @RequestMapping(value = "/v1/register", method = RequestMethod.POST)
+	// public ResponseEntity<?> saveUser(@RequestBody UserDTO user) throws Exception {
+	// 	registry.counter("custom.metrics.counter", "ApiCall", "RegisterPost").increment();
+	// 	if(userDetailsService.findUser(user.getUsername())!=null){
+	// 		logger.info("User already exists");
+    //         return new ResponseEntity<>("User already exists.", HttpStatus.BAD_REQUEST);
+	// 	}
 
-		logger.info("User saved successfully");
+	// 	logger.info("User saved successfully");
 
-		return ResponseEntity.ok(userDetailsService.save(user).getUsername());
-	}
+	// 	return ResponseEntity.ok(userDetailsService.save(user).getUsername());
+	// }
 
-	private void authenticate(String username, String password) throws Exception {
-		try {
-			authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
-		} catch (DisabledException e) {
-			throw new Exception("USER_DISABLED", e);
-		} catch (BadCredentialsException e) {
-			throw new Exception("INVALID_CREDENTIALS", e);
-		}
-	}
+	// private void authenticate(String username, String password) throws Exception {
+	// 	try {
+	// 		authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
+	// 	} catch (DisabledException e) {
+	// 		throw new Exception("USER_DISABLED", e);
+	// 	} catch (BadCredentialsException e) {
+	// 		throw new Exception("INVALID_CREDENTIALS", e);
+	// 	}
+	// }
 }

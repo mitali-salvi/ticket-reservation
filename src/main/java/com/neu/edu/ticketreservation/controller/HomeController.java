@@ -1,11 +1,8 @@
 package com.neu.edu.ticketreservation.controller;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.neu.edu.ticketreservation.bean.UserBean;
 import com.neu.edu.ticketreservation.bean.UserProfile;
 import com.neu.edu.ticketreservation.bean.movie.Film;
@@ -19,17 +16,12 @@ import com.neu.edu.ticketreservation.bean.wrapper.SeatWrapper;
 import com.neu.edu.ticketreservation.bean.wrapper.ShowDetailsWrapper;
 import com.neu.edu.ticketreservation.bean.wrapper.TheatreWrapper;
 import com.neu.edu.ticketreservation.bean.wrapper.TransactionWrapper;
-import com.neu.edu.ticketreservation.config.ElasticsearchConfig;
 import com.neu.edu.ticketreservation.dao.UserDao;
 import com.neu.edu.ticketreservation.service.MovieService;
 import com.neu.edu.ticketreservation.service.StripeService;
 import com.neu.edu.ticketreservation.service.UserProfileService;
 import com.neu.edu.ticketreservation.util.SecurityUtil;
 
-import org.elasticsearch.action.index.IndexRequest;
-import org.elasticsearch.action.index.IndexResponse;
-import org.elasticsearch.client.RequestOptions;
-import org.elasticsearch.common.xcontent.XContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,12 +57,6 @@ public class HomeController {
 
     @Autowired
     MeterRegistry registry;
-
-    @Autowired
-    private ElasticsearchConfig elasticsearchConfig;
-
-    @Autowired
-    private ObjectMapper objectMapper;
 
     @GetMapping(path = "/v1/theatres")
     public ResponseEntity<Object> getTheatres() {
@@ -137,23 +123,6 @@ public class HomeController {
         logger.info("Indexing show details in ES");
         for (ShowDetails sd : showDetailsList) {
             ShowDetailsWrapper sdw = new ShowDetailsWrapper().copyFromShowDetails(sd);
-
-            byte[] showDetailsMapper = new byte[0];
-            try {
-                showDetailsMapper = objectMapper.writeValueAsBytes(sdw);
-                IndexRequest indexRequest = new IndexRequest("showdetails", "_doc",
-                        Long.toString(sdw.getFilmSessionId())).source(showDetailsMapper, XContentType.JSON);
-
-                IndexResponse indexResponse = elasticsearchConfig.client().index(indexRequest, RequestOptions.DEFAULT);
-                logger.info("Created elasticsearch index: " + indexResponse.getId().toString());
-                if (indexResponse.getId().equals("") || indexResponse.getId() == null) {
-                    return new ResponseEntity<>("Error creating elasticsearch index", HttpStatus.INTERNAL_SERVER_ERROR);
-                }
-            } catch (JsonProcessingException e) {
-                logger.error(e.getMessage());
-            } catch (IOException e) {
-                logger.error(e.getMessage());
-            }
 
             showDetailsWrapperList.add(sdw);
         }
