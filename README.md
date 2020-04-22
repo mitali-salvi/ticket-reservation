@@ -3,5 +3,5 @@
 ## Team Information
 | Name | Email Address |
 | --- | --- |
-| Mitali Salvi| salvi.mi@husky.neu.edu
+| Mitali Salvi| salvi.mi@husky.neu.edu |
 | PinHo Wang| wang.pinh@husky.neu.edu |
