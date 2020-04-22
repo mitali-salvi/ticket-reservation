@@ -17,11 +17,6 @@ spec:
       labels:
         app: backend
     spec:
-      initContainers:
-        - name: check-elastic-service
-          image: busybox:1.28
-          command: ['sh', '-c',
-                    'until nslookup elasticsearch.api.svc.cluster.local; do echo waiting for elasticsearch; sleep 2; done;']
       containers:
       - name: csye7200-backend
         image: mitalisalvi/ticket-reservation-backend:latest
@@ -59,11 +54,11 @@ spec:
               secretKeyRef:
                 name: credentials
                 key: stripeKey
-          - name: ES_ELB
-            valueFrom:
-              secretKeyRef:
-                name: credentials
-                key: elb
+          # - name: ES_ELB
+          #   valueFrom:
+          #     secretKeyRef:
+          #       name: credentials
+          #       key: elb
         resources:
           requests:
             memory: "2048Mi"
